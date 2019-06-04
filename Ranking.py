@@ -12,6 +12,9 @@ import functools
 import subprocess
 
 def costFunction(x,lower,upper,costType):
+    # Function for defining and evaluating a deadband cost function with user declared cost type.
+    # Inputs are dataset, upper and lower bound of deadband, and type of end condition.
+    # Returns cost vector of input x.
     conds = [x <= lower, (x > lower) & (x < upper), x >= upper]
     if costType == 'linear':
         funcs = [lambda x: -1*(x-lower)+0, 
@@ -25,6 +28,8 @@ def costFunction(x,lower,upper,costType):
     return cost
 
 def mapValue(value, leftMin, leftMax, rightMin, rightMax):
+    # Maps value or vector from one domain to another. 
+    # Returns new value or vector.
     leftSpan = leftMax - leftMin
     rightSpan = rightMax - rightMin
     valueScaled = np.array(value - leftMin) / np.array(leftSpan)
@@ -48,7 +53,7 @@ knownURLs = 1           # 1 or 0 (yes or no)
 plotCostEquations = 1   # 1 or 0 (yes or no)
 
 # ------------ Change Lines ------------
-# Python: 36,213,228,230
+# Python: 50,213,228,230
 # MATLAB: none
 
 # ------------ Important Variables ------------
