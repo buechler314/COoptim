@@ -33,7 +33,7 @@ def mapValue(value, leftMin, leftMax, rightMin, rightMax):
 # --------------------------------------------------------------------------------------------------------------
 # ------------ Inputs ------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------------------------
-currentLocation = 'NA'              # 'NA' if you don't want to consider distance
+currentLocation = 'NA'                          # 'NA' if you don't want to consider distance
 parameters = ['probabilityOfPrecipitation','skyCover','windSpeed','temperature','lightningActivityLevel']
 parameterWeights = [0.8, 0.6, 0.5, 0.5, 1]
 distanceWeight = 0.6
@@ -44,8 +44,8 @@ parameterNormUpper = [100,100,40,32,6]          # Upper bound for normalization
 costType = 'quad'                               # linear or quad
 filePath = 'C:/Users/Owner/Desktop/COstuff/'
 openMATLAB = 0          # 1 or 0 (yes or no)
-knownURLs = 0           # 1 or 0 (yes or no)
-plotCostEquations = 0   # 1 or 0 (yes or no)
+knownURLs = 1           # 1 or 0 (yes or no)
+plotCostEquations = 1   # 1 or 0 (yes or no)
 
 # ------------ Change Lines ------------
 # Python: 36,213,228,230
@@ -64,7 +64,7 @@ plotCostEquations = 0   # 1 or 0 (yes or no)
 # --------------------------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------------------------
     
-# Load trailhead data from csv file
+# Load trailhead data from .csv file
 coord=pandas.read_csv(filePath+'trailhead_coord.csv',names=['trailhead','lat','long'])
 
 if currentLocation != 'NA':
@@ -91,7 +91,8 @@ if knownURLs == 0:
         for listitem in url_list:
             filehandle.write('%s\n' % listitem)
 
-if knownURLs == 1:
+
+if knownURLs == 1:  
     print('Getting URLs: 0 percent')
     with open('URLlist.txt', 'r') as filehandle:  
         for line in filehandle:
@@ -102,13 +103,14 @@ if knownURLs == 1:
     print('Getting URLs: 100 percent')
 coord['URL'] = url_list   
 
-# Get Data
+# Initialize dictionaries
 parameterSpecs = dict.fromkeys(parameters)
 count = 0
 DataByTrailhead = dict.fromkeys(coord['trailhead'])
 merged = dict.fromkeys(parameters)
 interpolated = dict.fromkeys(parameters)
 
+# assign variables to each parameter in dictionary
 for parameter in parameters:
     parameterSpecs[parameter] = {}
     parameterSpecs[parameter]['Weight'] = parameterWeights[count]
@@ -118,7 +120,7 @@ for parameter in parameters:
     parameterSpecs[parameter]['NormLower'] = parameterNormLower[count]
     count = count + 1
 
-# Save certain data points
+# Iterate through trailheads
 j=0
 columns = ['time']
 for trailhead in coord['trailhead']:
@@ -167,6 +169,7 @@ for parameter in parameters:
     interpolated[parameter].index = pandas.DatetimeIndex(interpolated[parameter].index.values)
     datesList.append(interpolated[parameter].index[-1])
 
+# Calculate furthest timestamp that can be used with given combonation of weather parameters
 furthest=min(datesList)
 print('Final Time: '+str(furthest))
 
@@ -188,8 +191,7 @@ for trailhead in coord['trailhead']:
             temp2['index'] = temp['index']
             temp2[parameter] = temp[trailhead]
             DataByTrailhead[trailhead]['TimeData'] = pandas.merge(DataByTrailhead[trailhead]['TimeData'],temp2[temp['index'] < furthest], sort=True, on='index', how='outer')
-        i = i+1
-        
+        i = i+1    
     j = j+1  
     
     # interpolate
@@ -198,13 +200,14 @@ for trailhead in coord['trailhead']:
     # adjust for time zone
     DataByTrailhead[trailhead]['TimeDataInter']['index'] -= datetime.timedelta(hours=6)
      
-# Calculating costs and plotting
+# Create figure and create dataframe for .csv writing
 plt.figure(figsize=(25,15))
 ax=plt.gca()
 j = 0
 distanceCost = 0
 csvData = pandas.DataFrame(index=DataByTrailhead[next(iter(DataByTrailhead))]['TimeDataInter']['index'])
 
+# Interate through trailheads
 for trailhead in coord['trailhead']:
     print('Calculating risk for '+ trailhead)
     DataByTrailhead[trailhead]['Cost']=pandas.DataFrame()
@@ -216,9 +219,10 @@ for trailhead in coord['trailhead']:
         mappedLowerTol = mapValue(parameterSpecs[parameter]['Lower'],parameterSpecs[parameter]['NormLower'],parameterSpecs[parameter]['NormUpper'],0,1)
         mappedHigherTol = mapValue(parameterSpecs[parameter]['Upper'],parameterSpecs[parameter]['NormLower'],parameterSpecs[parameter]['NormUpper'],0,1)
         DataByTrailhead[trailhead]['Cost'][parameter] = costFunction(mappedValues,mappedLowerTol,mappedHigherTol,costType) * parameterSpecs[parameter]['Weight']
+    
     DataByTrailhead[trailhead]['Cost'].index = DataByTrailhead[trailhead]['TimeDataInter']['index'] 
     
-    # compute travel time in seconds 
+    # Compute travel time in seconds 
     if currentLocation != 'NA':
         if trailhead != currentLocation:
             # travel time in minutes
@@ -228,7 +232,8 @@ for trailhead in coord['trailhead']:
             distanceCost = mappedAddition*distanceWeight          
         if trailhead == currentLocation:
             distanceCost = 0
-        
+    
+    # Assign distance cost and compute total cost    
     DataByTrailhead[trailhead]['Cost']['Distance'] = distanceCost
     DataByTrailhead[trailhead]['Cost']['Cost'] = DataByTrailhead[trailhead]['Cost'].sum(axis=1)
     
@@ -236,6 +241,7 @@ for trailhead in coord['trailhead']:
     csvData[trailhead] = np.array(DataByTrailhead[trailhead]['Cost']['Cost'])
     j = j + 1
     
+# Plot parameters
 labelSize = 20
 formatter = matplotlib.dates.DateFormatter("%m-%d")
 ax.xaxis.set_major_formatter(formatter)
@@ -243,6 +249,7 @@ ax.xaxis.set_tick_params(rotation=30, labelsize=labelSize)
 ax.tick_params(axis='both', which='major', labelsize=labelSize)
 plt.ylabel('Risk Level',fontsize=labelSize)
 plt.grid(True)
+plt.show()
 
 # Write data to csv
 print('Writing to CSV')
@@ -256,8 +263,6 @@ temp = np.flip(csvData.values.argsort(),1)
 sortedRiskOrder = pandas.DataFrame(csvData.columns[temp], index=csvData.index)
 #print(sortedRiskOrder)
 
-# Show cost plot
-#plt.show()
 
 ############### plotting cost function for all parameters, every trailhead, every time  #############
 ############### can copy paste entire for loop in command window after file has run     #############
@@ -286,16 +291,13 @@ if plotCostEquations == 1:
         plt.ylabel(parameter+' Cost before weight',fontsize=labelSize)
         plt.show() 
 
-############## send command to command prompt to run matlab script
+############## send command to run matlab script
 if openMATLAB == 1:
     MATLABpath = '\"C:\\Program Files\\MATLAB\\R2018b\\bin\\matlab.exe\"'
     string2 = ' -nodisplay -nosplash -nodesktop -r \"'
     string3 = "run('C:\\Users\\Owner\\Desktop\\COstuff\\RiskData.m');\""
     string = MATLABpath+string2+string3
     subprocess.run(string)
-
-
-
 
 
 ############# Sample plot of one parameter at one location #############
