@@ -1,10 +1,10 @@
 # Weather Forcast & Distance Optimization
 
-Last Updated: 2019-06-14 12:44:21.242056
+Last Updated: 2019-06-14 12:50:48.679172
 
 ## Risk Plot:
 
-![Risks](https://buechler314.github.io/COoptim/risk.jpg)
+![Risks](https://buechler314.github.io/COoptim/risk.png)
 
 ## Trailheads risk scale: High to Low Risk 
 
