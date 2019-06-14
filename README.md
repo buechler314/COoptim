@@ -1,12 +1,19 @@
 # Weather Forcast & Distance Optimization
 
-Last Updated: 2019-06-14 19:52:52.341784
+Last Updated: 2019-06-14 19:59:14.929709
+
 Risk Parameters:
+
 probabilityOfPrecipitation
+
 skyCover
+
 windSpeed
+
 temperature
+
 lightningActivityLevel
+
 Location Used: NA
 
 ## Risk Plot:
