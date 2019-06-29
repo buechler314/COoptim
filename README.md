@@ -1,19 +1,24 @@
 # Weather Forcast & Distance Optimization
 
-Last Updated: 2019-06-29 19:01:01.970033
+Last Updated: 2019-06-29 19:02:23.778248
 
 Risk Parameters:
 
-###probabilityOfPrecipitation
+### probabilityOfPrecipitation
 {'Weight': 0.8, 'Lower': 0, 'Upper': 20, 'NormUpper': 100, 'NormLower': 0}
-###skyCover
+
+### skyCover
 {'Weight': 0.6, 'Lower': 0, 'Upper': 30, 'NormUpper': 100, 'NormLower': 0}
-###windSpeed
+
+### windSpeed
 {'Weight': 0.5, 'Lower': 0, 'Upper': 5, 'NormUpper': 40, 'NormLower': 0}
-###temperature
+
+### temperature
 {'Weight': 0.5, 'Lower': 5, 'Upper': 15, 'NormUpper': 32, 'NormLower': -10}
-###lightningActivityLevel
+
+### lightningActivityLevel
 {'Weight': 1, 'Lower': 0, 'Upper': 2, 'NormUpper': 6, 'NormLower': 0}
+
 Location Used: NA,weight: 0.6
 
 Cost Type: quad
